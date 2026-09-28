@@ -61,6 +61,33 @@ case _ =>
 
 The two phases disagree about whether `NameMath` is an operator.
 
+## Is infix use of a math name documented?
+
+No — and that is probably why it has gone unnoticed.
+
+[`identifiers.html`](https://doc.flix.dev/identifiers.html) defines a **math name** as "an
+identifier consisting of any combination of math symbols (the unicode range U+2190 to U+22FF)",
+offers `⊆`, `√` and `⊙` as its examples, and says math names may name functions and variables. It
+says nothing about infix.
+
+[`functions.html`](https://doc.flix.dev/functions.html) documents infix for the *other* category
+only: "a function named with an **operator name** (some combination of `+`, `-`, `*`, `<`, `>`,
+`=`, `!`, `&`, `|`, `^`, and `$`) can also be used infix", plus the backtick form. Math names are
+not mentioned.
+
+So this is not a documented feature that regressed. The case for it being intended rests on the
+implementation, where it is unambiguous: a dedicated `BinaryOp.NameMath` (`Parser2.scala:1675`),
+membership in `FIRST_BINARY_OP` (`Parser2.scala:1703`), and its own precedence — level 11, the
+tightest binary level, shared with `BinaryOp.UserDefinedOperator` (`Parser2.scala:1765`).
+
+It is also unexercised upstream: no math-symbol function is defined anywhere in `main/src/library`
+or `main/test`, and no infix use of one appears outside pseudo-code in doc comments. That is the
+survival explanation.
+
+Either resolution is fine — support it in `Weeder2`, or reject it in `Parser2` with a real
+diagnostic. What should not persist is a dedicated parser path ending in an
+`InternalCompilerException`.
+
 ## Relation to #13320 / #13326
 
 [#13326](https://github.com/flix/flix/pull/13326) fixed the same exception for a *different*
