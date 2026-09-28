@@ -4,10 +4,10 @@ wrapperVersion = "0.31.3"
 
 [compiler]
 repo    = "flix/flix"
-version = "0.76.0"
-url     = "https://github.com/flix/flix/releases/download/v0.76.0/flix.jar"
-sha256  = "d8d9a3870e199c03ed6364ea9430f56f67bfd38c332c411628a6a7cb88b2b0b4"
-reported_version = "0.76.0"
+version = "0.77.0"
+url     = "https://github.com/flix/flix/releases/download/v0.77.0/flix.jar"
+sha256  = "20007d79f97b696ba388113e2a4235227691d33a00bfa669f2316b37a7b14201"
+reported_version = "0.77.0"
 
 [plugins.metrics]
 version = "0.3.0"

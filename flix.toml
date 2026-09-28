@@ -1,6 +1,6 @@
 [package]
-name        = "flix-template"
-description = "A Flix project template that carries its own compiler via flixw"
+name        = "flix-repro-namemath-infix-crash"
+description = "Reproduction: Weeder2 crashes on a math-name operator used infix"
 version     = "0.1.0"
 # Exactly x.y.z, three integers: "0.75" or a -suffix is rejected. The compiler checks
 # the shape and ignores the value; flixw enforces it as the floor the lock satisfies.

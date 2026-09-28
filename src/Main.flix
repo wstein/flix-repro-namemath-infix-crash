@@ -1,27 +1,38 @@
 ///
-/// This project's own module.
+/// Minimal reproduction: the compiler crashes with an `InternalCompilerException`
+/// on a user-defined operator whose name is a math symbol, used infix.
 ///
-/// Code declared here is documented under `Hello` and gets its own page from
-/// `./flixw doc`. Anything left in the root namespace is instead folded into
-/// the standard library's own `Prelude` page, where it is indistinguishable
-/// from the library -- which is why only `main` lives out there, and only
-/// because Flix requires the entry point at the root.
+/// Nothing here is malformed. `Parser2` has a dedicated binary operator for
+/// math-symbol names: `peekBinaryOp` maps `TokenKind.NameMath` to
+/// `BinaryOp.NameMath`, `NameMath` is a member of `FIRST_BINARY_OP`, and it
+/// carries its own precedence. So `x ⊆ y` parses cleanly into `Expr.Binary`
+/// with the symbol closed as `Operator`.
 ///
-mod Hello {
+/// `Weeder2.visitBinaryExpr` then matches the operator token against a fixed
+/// set which does not include `NameMath`, and falls through to
+/// `throw InternalCompilerException("Expr.Binary operator not recognized")`.
+///
+/// The two phases disagree about whether `NameMath` is an operator.
+///
+mod Sets {
 
     ///
-    /// Returns the greeting for `name`.
+    /// Subset, written with the usual math symbol.
     ///
-    /// Kept apart from `main` so there is something to test: `main` is
-    /// effectful and writes to the terminal, while this is pure and returns
-    /// its result.
+    /// The *declaration* is accepted by every phase. Flix allows math symbols
+    /// as definition names, and nothing about this line is unusual.
     ///
-    pub def greeting(name: String): String = "Hello, ${name}!"
+    pub def ⊆(x: Bool, y: Bool): Bool = (not x) or y
 
 }
 
 ///
-/// The main entry point.
+/// The entry point.
+///
+/// The infix *call* is what crashes. Rewrite it as `Sets.⊆(true, false)` and
+/// the whole project compiles and runs, which is what isolates the defect to
+/// the infix path in `Weeder2.visitBinaryExpr`.
 ///
 def main(): Unit \ IO =
-    println(Hello.greeting("World"))
+    use Sets.⊆;
+    println(true ⊆ false)
