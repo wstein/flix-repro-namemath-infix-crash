@@ -25,12 +25,15 @@ jobs:
           # separate logic, so each one is exercised on the platform it serves.
           - os: ubuntu-latest
             flixw: ./flixw
+            bashw: ./flixw
             shell: bash
           - os: macos-latest
             flixw: ./flixw
+            bashw: ./flixw
             shell: bash
           - os: windows-latest
             flixw: .\flixw.cmd
+            bashw: ./flixw.cmd
             shell: cmd
 
     defaults:
@@ -79,11 +82,30 @@ jobs:
       - name: Validate the wrapper
         run: ${{ matrix.flixw }} validate
 
-      - name: Check
-        run: ${{ matrix.flixw }} check
-
-      - name: Test
-        run: ${{ matrix.flixw }} test
+      # This repository exists to reproduce a compiler crash, so a clean build is
+      # the failure. The step passes only while the compiler still dies with the
+      # reported InternalCompilerException; if a Flix release fixes the bug the
+      # crash disappears and this step goes red, which is the signal to retire
+      # the reproduction. Any other failure is a different problem and also red.
+      - name: Reproduce the infix crash
+        shell: bash
+        env:
+          FLIXW: ${{ matrix.bashw }}
+        run: |
+          set +e
+          output=$("$FLIXW" check 2>&1)
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [ "$status" -eq 0 ]; then
+            echo "::error::check succeeded; the crash no longer reproduces"
+            exit 1
+          fi
+          if ! printf '%s' "$output" | grep -q "Expr.Binary operator not recognized"; then
+            echo "::error::check failed, but not with the expected infix crash"
+            exit 1
+          fi
+          echo "crash reproduced as expected"
 
       # Last on purpose: a stale badge is metadata, and failing earlier would
       # hide the build result behind it. Repository-wide rather than per-OS, so
